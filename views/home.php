@@ -25,7 +25,7 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
   <div class="xl:container mx-auto px-4 sm:px-10">
     <header class="py-4">
       <div class="w-full flex items-center justify-between gap-4">
-        <a href="" class="text-2xl font-bold mb-4 text-center">
+        <a href="home.php" class="text-2xl font-bold mb-4 text-center">
           <span class="text-blue-500">Badas</span>Film
         </a>
         <a href="logout.php"
@@ -35,7 +35,8 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
       </div>
     </header>
     <main class="py-10">
-      <form class="w-full max-w-2xl">
+      <h1>Selamat datang <b><?php echo $_SESSION['name'] ?></b></h1>
+      <form class="w-full max-w-2xl mt-2">
         <label for="search" class="mb-2 text-sm font-medium text-gray-900 sr-only">Search</label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -203,8 +204,9 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
 
       data.forEach((movie) => {
         // Membuat elemen card
-        const card = document.createElement('div');
-        card.className = 'relative card w-full space-y-2 cursor-pointer';
+        const card = document.createElement('a');
+        card.className = 'block relative card w-full space-y-2 cursor-pointer';
+        card.href = `movie-detail.php?id=${movie.id}`;
 
         const yearSpan = document.createElement('span');
         yearSpan.className = 'block absolute top-4 right-1.5 bg-white px-2 py-1 rounded-full font-semibold z-10';

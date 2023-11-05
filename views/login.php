@@ -18,16 +18,17 @@ if (isset($_POST['login'])) {
 
   // Menyimpan data hasil login ke session
   if ($authentication->status == 'authenticated') {
-    if ($data['role'] == 'user') {
-      $_SESSION['user_id'] = $data['id'];
-    } else {
-      $_SESSION['admin_id'] = $data['id'];
-    }
     $_SESSION['name'] = $data['fullname'];
     $_SESSION['email'] = $data['email'];
     $_SESSION['role'] = $data['role'];
 
-    $authentication->navigation('dashboard.php');
+    if ($data['role'] == 'user') {
+      $_SESSION['user_id'] = $data['id'];
+      $authentication->navigation('home.php');
+    } else {
+      $_SESSION['admin_id'] = $data['id'];
+      $authentication->navigation('dashboard.php');
+    }
   }
 }
 ?>
@@ -41,10 +42,24 @@ if (isset($_POST['login'])) {
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-  <div class="xl:container mx-auto px-4 sm:px-10">
+  <div class="relative xl:container mx-auto px-4 sm:px-10">
     <div class="w-full min-h-screen flex items-center justify-center flex-col py-10">
-      <h2 class="text-3xl font-bold">Login</h2>
-      <form method="post" class="w-full mt-4 max-w-2xl">
+      <div class="absolute inset-0">
+        <img
+          src="https://source.unsplash.com/random/1600x900/"
+          alt="bg-login"
+          class="hidden md:block w-full h-full object-cover"
+        >
+        <img
+          src="https://source.unsplash.com/random/900x1600/"
+          alt="bg-login"
+          class="block md:hidden w-full h-full object-cover"
+        >
+      </div>
+      <form method="post" class="relative w-full mt-4 max-w-2xl bg-white bg-opacity-60 backdrop-blur rounded-xl py-10 px-6 sm:px-10 shadow-md">
+        <h2 class="text-3xl font-bold mb-4 text-center">
+          <span class="text-blue-500">Badas</span>Film
+        </h2>
         <div class="mb-6">
           <label for="email" class="inline-block mb-2 text-sm font-medium text-gray-900">Email</label>
           <input
@@ -80,20 +95,13 @@ if (isset($_POST['login'])) {
           type="submit"
           name="login"
           value="Login"
-          class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2"
+          class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 cursor-pointer"
         >
         <span class="inline-block w-full">
           Belum punya akun? <a href="register.php" class="underline">Register</a>
         </span>
       </form>
     </div>
-
-    <!-- <h2>Login</h2>
-    <form method="post">
-        <input type="text" name="email" placeholder="Email" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <input type="submit" name="login" value="Login">
-    </form> -->
   </div>
 </body>
 </html>

@@ -1,14 +1,5 @@
 <?php
-require_once '../models/Database.php';
-require_once '../models/Authentication.php';
 session_start();
-
-$db = new Database();
-$authentication = new Authentication($db->getConnection());
-
-if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
-  $authentication->navigation('login.php');
-}
 ?>
 
 <!DOCTYPE html>
@@ -28,14 +19,35 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
         <a href="home.php" class="text-2xl font-bold mb-4 text-center">
           <span class="text-blue-500">Badas</span>Film
         </a>
-        <a href="logout.php"
-          class="inline-block focus:outline-none text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">
-          Logout
-        </a>
+        <div class="flex items-center gap-4">
+          <?php if(empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])): ?>
+            <a href="login.php"
+              class="block focus:outline-none text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">
+              Login
+            </a>
+          <?php else: ?>
+            <div class="flex items-center gap-2">
+              <?php if(!empty($_SESSION['admin_id'])): ?>
+                <a href="dashboard.php" class="block px-2 py-1 -mt-1.5 text-gray-700">
+                  <img src="../assets/dashboard-icon.svg" alt="dashboard-icon" class="w-[22px] aspect-square object-cover">
+                </a>
+              <?php endif ?>
+              <a href="list-invoice.php" class="block px-2 py-1 -mt-1.5 text-gray-700">
+                <img src="../assets/invoice-icon.svg" alt="invoice-icon" class="w-[32px] aspect-square object-cover">
+              </a>
+            </div>
+            <a href="logout.php"
+              class="block focus:outline-none text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">
+              Logout
+            </a>
+          <?php endif ?>
+        </div>
       </div>
     </header>
     <main class="py-10">
-      <h1>Selamat datang <b><?php echo $_SESSION['name'] ?></b></h1>
+      <?php if(!empty($_SESSION['name'])): ?>
+        <h1>Selamat datang <b><?php echo $_SESSION['name'] ?></b></h1>
+      <?php endif ?>
       <form class="w-full max-w-2xl mt-2">
         <label for="search" class="mb-2 text-sm font-medium text-gray-900 sr-only">Search</label>
         <div class="relative">
@@ -96,150 +108,10 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
       </div>
     </main>
   </div>
-  <script>
-    const movieLoader = document.querySelector('.movie-loading');
-    let query = 'list=most_pop_movies';
-    let keywordSearch = '';
-    const options = {
-        method: 'GET',
-        headers: {
-          'X-RapidAPI-Key': '8372c7057bmshd81f06efd0e51bep1bdee4jsnad29e9fe608c',
-          'X-RapidAPI-Host': 'moviesdatabase.p.rapidapi.com'
-        }
-      };
+  <script type="module">
+    import Movie from '../models/Movie.js';
 
-    const searchButton = document.getElementById('search-btn');
-    const searchInput = document.getElementById('search');
-    const loadMoreButton = document.getElementById('load-more');
-    const movieNotFoundText = document.querySelector('.movie-not-found');
-
-    fetchAll();
-
-    loadMoreButton.addEventListener('click', () => {
-      if (keywordSearch !== '') {
-        searchMovie(true);
-      } else {
-        fetchAll();
-      }
-    });
-
-    searchButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      keywordSearch = searchInput.value;
-      searchMovie();
-    });
-
-    function searchMovie(isLoadMore = false) {
-      if (!isLoadMore) resetDisplayAndQuery();
-      else loadMoreButton.classList.add('hidden');
-
-      if (keywordSearch) {
-        movieLoader.classList.remove('hidden');
-        fetch(`https://moviesdatabase.p.rapidapi.com/titles/search/title/${keywordSearch}?${query}`, options)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Gagal mengambil data dari API');
-          }
-          return response.json();
-        })
-        .then((data) => {
-          movieLoader.classList.add('hidden');
-
-          if (data?.results) addCards(data.results);
-          if (data.next !== null) {
-            query = data.next.replace('/titles/search/title/spider?', '');
-            loadMoreButton.classList.remove('hidden');
-          }
-        })
-        .catch(error => {
-          alert(error?.message || JSON.stringify(error));
-        });
-      } else {
-        fetchAll();
-      }
-    }
-    
-    function fetchAll() {
-      movieLoader.classList.remove('hidden');
-
-      fetch('https://moviesdatabase.p.rapidapi.com/titles?' + query, options)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Gagal mengambil data dari API');
-          }
-          return response.json();
-        })
-        .then((data) => {
-          movieLoader.classList.add('hidden');
-
-          if (data?.results) addCards(data.results);
-          if (data.next !== null) {
-            query = data.next.replace('/titles?', '');
-            loadMoreButton.classList.remove('hidden');
-          }
-        })
-        .catch(error => {
-          alert(error?.message || JSON.stringify(error));
-        });
-    }
-
-    function resetDisplayAndQuery() {
-      query = 'list=most_pop_movies';
-
-      loadMoreButton.classList.add('hidden');
-      movieNotFoundText.classList.add('hidden');
-
-      const element = document.getElementById('movie-container');
-      element.innerHTML = '';
-    }
-
-    function addCards(data) {
-      // Container untuk elemen-elemen card
-      const movieContainer = document.getElementById('movie-container');
-
-      if (data.length === 0) {
-        movieNotFoundText.classList.remove('hidden');
-        return;
-      }
-
-      data.forEach((movie) => {
-        // Membuat elemen card
-        const card = document.createElement('a');
-        card.className = 'block relative card w-full space-y-2 cursor-pointer';
-        card.href = `movie-detail.php?id=${movie.id}`;
-
-        const yearSpan = document.createElement('span');
-        yearSpan.className = 'block absolute top-4 right-1.5 bg-white px-2 py-1 rounded-full font-semibold z-10';
-        yearSpan.innerText = movie.releaseYear?.year || '-';
-
-        const imageDiv = document.createElement('div');
-        imageDiv.className = 'w-full aspect-[2/3] bg-gray-100 rounded-md overflow-hidden';
-
-        const image = document.createElement('img');
-        if (movie.primaryImage) {
-          image.className = 'w-full h-full object-cover hover:scale-[1.1] transition-all duration-200';
-          image.src = movie.primaryImage.url;
-        }
-
-        const textDiv = document.createElement('div');
-        textDiv.className = 'text-gray-700 text-xs sm:text-sm';
-
-        const titleH2 = document.createElement('h2');
-        titleH2.className = 'uppercase font-semibold line-clamp-2 hover:text-blue-500 transition';
-        titleH2.innerText = movie.titleText.text;
-
-        // Menambahkan elemen-elemen ke dalam elemen card
-        imageDiv.appendChild(image);
-        textDiv.appendChild(titleH2);
-
-        card.appendChild(yearSpan);
-        card.appendChild(imageDiv);
-        card.appendChild(textDiv);
-
-        // Menambahkan elemen card ke dalam container
-        movieContainer.appendChild(card);
-      });
-    }
+    const movieApp = new Movie();
   </script>
 </body>
 

@@ -1,13 +1,9 @@
 <?php
-require_once '../models/Database.php';
 require_once '../models/Authentication.php';
 session_start();
 
-$db = new Database();
-$authentication = new Authentication($db->getConnection());
-
-if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
-  $authentication->navigation('login.php');
+if (!isset($_GET['id'])) {
+  Authentication::navigation('home.php');
 }
 ?>
 
@@ -28,10 +24,29 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
         <a href="home.php" class="text-2xl font-bold mb-4 text-center">
           <span class="text-blue-500">Badas</span>Film
         </a>
-        <a href="logout.php"
-          class="inline-block focus:outline-none text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">
-          Logout
-        </a>
+        <div class="flex items-center gap-4">
+          <?php if(empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])): ?>
+            <a href="login.php"
+              class="block focus:outline-none text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">
+              Login
+            </a>
+          <?php else: ?>
+            <div class="flex items-center gap-2">
+              <?php if(!empty($_SESSION['admin_id'])): ?>
+                <a href="dashboard.php" class="block px-2 py-1 -mt-1.5 text-gray-700">
+                  <img src="../assets/dashboard-icon.svg" alt="dashboard-icon" class="w-[22px] aspect-square object-cover">
+                </a>
+              <?php endif ?>
+              <a href="list-invoice.php" class="block px-2 py-1 -mt-1.5 text-gray-700">
+                <img src="../assets/invoice-icon.svg" alt="invoice-icon" class="w-[32px] aspect-square object-cover">
+              </a>
+            </div>
+            <a href="logout.php"
+              class="block focus:outline-none text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">
+              Logout
+            </a>
+          <?php endif ?>
+        </div>
       </div>
     </header>
     <main class="pt-4 sm:pt-10 pb-10">
@@ -42,22 +57,44 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
       </a>
       <div class="w-full flex flex-col md:flex-row items-start gap-4 sm:gap-10">
         <div class="md:basis-[40%] w-full">
-          <div class="w-full aspect-[2/3] rounded-xl overflow-hidden bg-gray-100 animate-pulse">
+          <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-gray-100 animate-pulse">
             <img
               id="movie-cover"
               src=""
               alt="detail-film"
               class="hidden w-full h-full object-cover"
             >
+            <span id="movie-sold" class="absolute bottom-4 right-3 py-2 px-4 rounded-full text-lg font-semibold bg-white animate-pulse">
+              Loading...
+            </span>
           </div>
-          <div class="mt-6">
-            <button
-              type="submit"
-              name="buy"
-              class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 mr-2 mb-2 cursor-pointer"
-            >
-              Beli Lisensi Film
-            </button>
+          <div class="mt-4 space-y-6">
+            <h6 id="movie-price" class="text-4xl font-bold tracking-wide" data-price="100000">
+              Rp100,000
+            </h6>
+            <div class="space-y-2">
+              <span class="block text-gray-500 text-sm italic">
+                Dengan membeli film anda berarti setuju dengan S&K yang berlaku<sup>*</sup>
+              </span>
+              <form action="payment.php" method="post">
+                <input type="hidden" name="movie_title">
+                <input type="hidden" name="movie_id">
+                <input type="hidden" name="movie_image">
+                <input type="hidden" name="movie_year">
+                <input type="hidden" name="movie_rating">
+                <input type="hidden" name="movie_price" value="100000">
+                <input type="hidden" name="admin_fee" value="7500">
+                <input type="hidden" name="service_fee" value="10000">
+                <input type="hidden" name="created_at" value="<?php echo date('j F Y'); ?>">
+                <button
+                  type="submit"
+                  name="buy"
+                  class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 mr-2 mb-2 cursor-pointer"
+                >
+                  Beli Lisensi Film
+                </button>
+              </form>
+            </div>
           </div>
         </div>
         <div class="w-full md:basis-[60%]">
@@ -109,12 +146,12 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
       </div>
     </main>
   </div>
-  <script>
+  <script type="module">
+    import Movie from '../models/Movie.js';
+
     const urlSearchParams = new URLSearchParams(window.location.search);
     const id = urlSearchParams.get('id');
-
-    if (id) {
-      const options = {
+    const options = {
       method: 'GET',
       headers: {
         'X-RapidAPI-Key': '8372c7057bmshd81f06efd0e51bep1bdee4jsnad29e9fe608c',
@@ -122,43 +159,45 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
       }
     };
 
-    function getMovieDetail() {
-      return fetch(`https://moviesdatabase.p.rapidapi.com/titles/${id}`, options)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Gagal mengambil data dari API');
-        }
-        return response.json();
-      })
+    function setInputFormMovie(movieData) {
+      document.querySelector('input[name="movie_title"]').value = movieData.title;
+      document.querySelector('input[name="movie_id"]').value = movieData.id;
+      document.querySelector('input[name="movie_image"]').value = movieData.image;
+      document.querySelector('input[name="movie_year"]').value = movieData.year;
+      document.querySelector('input[name="movie_rating"]').value = movieData.rating;
     }
 
-    function getMovieRating() {
-      return fetch(`https://moviesdatabase.p.rapidapi.com/titles/${id}/ratings`, options)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Gagal mengambil data dari API');
-        }
-        return response.json();
-      })
-    }
-
-    Promise.all([getMovieDetail(), getMovieRating()])
+    Promise.all([Movie.getMovieDetail(id, options), Movie.getMovieRating(id, options)])
       .then(([movie, ratings]) => {
         const srcImage = document.getElementById('movie-cover');
         const title = document.getElementById('movie-title');
         const year = document.getElementById('movie-year');
         const rating = document.getElementById('movie-rating');
+        const sold = document.getElementById('movie-sold');
 
         if (movie?.results) {
           srcImage.parentElement.classList.remove('animate-pulse');
           srcImage.classList.remove('hidden');
           srcImage.src = movie.results.primaryImage?.url || '';
 
-          title.classList.remove('animate-pulse');;
+          title.classList.remove('animate-pulse');
           title.textContent = movie.results.titleText.text;
-          year.classList.remove('animate-pulse');;
+
+          year.classList.remove('animate-pulse');
           year.textContent = movie.results.releaseYear?.year || '-';
+
           rating.textContent = ratings?.results?.averageRating || 'NaN';
+
+          sold.classList.remove('animate-pulse');
+          sold.textContent = `${Math.round(Math.random() * 500)} Terjual`;
+
+          setInputFormMovie({
+            title: movie.results.titleText.text,
+            id: movie.results.id,
+            image: movie.results.primaryImage?.url || '',
+            year: movie.results.releaseYear?.year || '-',
+            rating: ratings?.results?.averageRating || 'NaN'
+          });
         } else {
           alert('Film detail tidak ditemukan! Halaman dialihkan ke home.');
           window.location = 'home.php';
@@ -167,9 +206,6 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
       .catch(error => {
         alert(error?.message || JSON.stringify(error));
       });
-    } else {
-      window.location = 'home.php';
-    }
   </script>
 </body>
 </html>

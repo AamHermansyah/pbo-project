@@ -99,10 +99,16 @@ $data = $payment->getInvoices(1, 10, $id);
                   <td class="px-6 py-4">Rp100,000</td>
                   <td class="px-6 py-4"><?= 'Rp' . number_format($movie['total_price']); ?></td>
                   <td class="px-6 py-4"><?= $movie['order_at']; ?></td>
-                  <td class="px-6 py-4">
+                  <td class="px-6 py-4 flex items-center">
                     <a
-                      href="invoice.php?id=<?= $movie["id"] ?>"
+                      href="movie.php?id=<?= $movie['movie_id'] ?>"
                       class="block w-max text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 mr-2 mb-2 cursor-pointer"
+                    >
+                      Tonton
+                    </a>
+                    <a
+                      href="invoice.php?id=<?= $movie['invoice_id'] ?>"
+                      class="block w-max text-blue-700 border border-blue-500 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 mr-2 mb-2 cursor-pointer"
                     >
                       Detail
                     </a>

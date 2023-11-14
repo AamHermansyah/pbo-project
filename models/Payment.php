@@ -50,9 +50,9 @@ class Payment {
     $query;
     
     if (empty($user_id)) {
-      $query = "SELECT invoice.*, users.* FROM invoice LEFT JOIN users ON invoice.user_id = users.id LIMIT ?, ?";
+      $query = "SELECT invoice.id AS invoice_id, users.id AS user_id, invoice.*, users.* FROM invoice LEFT JOIN users ON invoice.user_id = users.id LIMIT ?, ?";
     } else {
-        $query = "SELECT invoice.*, users.* FROM invoice LEFT JOIN users ON invoice.user_id = users.id WHERE invoice.user_id = ? LIMIT ?, ?";
+        $query = "SELECT invoice.id AS invoice_id, users.id AS user_id, invoice.*, users.* FROM invoice LEFT JOIN users ON invoice.user_id = users.id WHERE invoice.user_id = ? LIMIT ?, ?";
     }
 
     $stmt = $this->conn->prepare($query);

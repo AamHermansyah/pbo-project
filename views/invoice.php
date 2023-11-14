@@ -22,6 +22,14 @@ if (isset($_GET["id"])) {
   Authentication::navigation('home.php');
 }
 
+$user_id;
+
+if (empty($_SESSION['user_id'])) {
+  $user_id = $_SESSION['admin_id'];
+} else {
+  $user_id = $_SESSION['user_id'];
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -67,7 +75,7 @@ if (isset($_GET["id"])) {
       </div>
     </header>
     <main class="py-10 max-w-6xl mx-auto">
-      <a href="list-invoice.php" class="inline-block mb-4">
+      <a href="<?= !empty($_GET['isAdmin']) && $_GET['isAdmin'] == 'true' ? 'dashboard' : 'list-invoice' ?>.php" class="inline-block mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000" height="20px" width="20px" version="1.1" id="Layer_1" viewBox="0 0 476.213 476.213" xml:space="preserve">
           <polygon points="476.213,223.107 57.427,223.107 151.82,128.713 130.607,107.5 0,238.106 130.607,368.714 151.82,347.5   57.427,253.107 476.213,253.107 "/>
         </svg>
@@ -76,7 +84,7 @@ if (isset($_GET["id"])) {
         <div class="flex flex-col-reverse sm:flex-row items-center justify-between gap-10">
           <div class="relative w-full max-w-[200px] mx-auto sm:mx-0 rounded-xl aspect-[2/3] overflow-hidden border">
             <img src="<?= $data["movie_image"] ?>" alt="poster" class="absolute inset-0 bg-cover">
-          </div>
+          </div>  
           <div class="w-full">
             <?php if (isset($_GET["payment"]) && $_GET["payment"] == 'successfull'): ?>
               <div class="flex items-center p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
@@ -241,11 +249,19 @@ if (isset($_GET["id"])) {
           </table>
         </div>
         <div>
+          <?php if ($data['user_id'] === $user_id): ?>
+            <a
+              href="movie.php?id=<?= $data['movie_id'] ?>"
+              class="block text-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 mr-2 mb-2 cursor-pointer"
+            >
+              Yay! Tonton Film
+            </a>
+          <?php endif ?>
           <a
             href="list-invoice.php"
-            class="block text-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 mr-2 mb-2 cursor-pointer"
+            class="block text-center border text-blue-500 border-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 mr-2 mb-2 cursor-pointer"
           >
-            Selesai
+            Kembali
           </a>
         </div>
       </div>

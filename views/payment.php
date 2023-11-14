@@ -8,8 +8,6 @@ if (empty($_SESSION['user_id']) && empty($_SESSION['admin_id'])) {
   Authentication::navigation('login.php');
 }
 
-echo  $_SESSION["admin_id"];
-
 $db = new Database();
 $payment = new Payment($db->getConnection());
 
@@ -248,10 +246,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && empty($_POST["payment"])) {
                   placeholder="Masukan nama kota" required="">
               </div>
               <div class="w-full">
-                <label for="zip_code" class="block mb-2 text-sm font-medium text-gray-900">Kode ZIP</label>
+                <label for="zip_code" class="block mb-2 text-sm font-medium text-gray-900">Kode Pos</label>
                 <input type="number" name="zip_code" id="zip_code"
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                  placeholder="Masukan kode ZIP" required="">
+                  placeholder="Masukan kode pos" required="">
               </div>
               <div class="sm:col-span-2">
                 <label for="country" class="block mb-2 text-sm font-medium text-gray-900">Negara</label>
